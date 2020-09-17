@@ -1,27 +1,107 @@
 [![Experimental Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#experimental)
 
-# [Name of Project] [build badges go here when available]
+# Google Analytics Realtime API to New Relic Insights [build badges go here when available]
 
->[Brief description - what is the project and value does it provide? How often should users expect to get releases? How is versioning set up? Where does this project want to go?]
+>
+This is a AWS Lambda serverless application that queries Google Analytics Realtime data and creates events in New Relic using the Insights insert api. It is built with the AWS Serverless Application Model (SAM). This is created as a proof of concept for sending GA realtime data to the New Relic Telemetry Data Platform (TDP).
 
 ## Installation
 
-> [Include a step-by-step procedure on how to get your code installed. Be sure to include any third-party dependencies that need to be installed separately]
+> 
+The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
+
+To use the SAM CLI, you need the following tools.
+
+* SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+* [Python 3 installed](https://www.python.org/downloads/)
+* Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
+
+To build and deploy your application for the first time, run the following in your shell:
+
+```bash
+sam build --use-container
+sam deploy --guided
+```
+
+The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
+
+* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
+* **AWS Region**: The AWS region you want to deploy your app to.
+* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
+* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modified IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
+* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
+
+To delete the application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
+
+```bash
+aws cloudformation delete-stack --stack-name newrelic-google-analytics-realtime-to-insights
+```
+
+See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
 
 ## Getting Started
->[Simple steps to start working with the software similar to a "Hello World"]
+>
+To query the google analytics real time api, currently it is required to do the following:
+- Sign up for the realtime api beta linked on this page: https://developers.google.com/analytics/devguides/reporting/realtime/v3
+- Create a service account on google cloud and create credentials.json for the account: https://cloud.google.com/docs/authentication/production#auth-cloud-explicit-python
+
+Once you have the google cloud credentials, 
+1. in the folder replace the contents of the `ga_realtime_nr/credentials.json` with the content of the json file you generated for your service accounts.
+
+2. In `ga_realtime_nr/app.py` replace
+- `VIEW_ID` with the view id of the google analytics account view. Can be found here: https://ga-dev-tools.appspot.com/account-explorer/
+- `METRICS` with the metrics that you want to query from the realtime api. Examples can be found here: https://developers.google.com/analytics/devguides/reporting/realtime/dimsmets
+- `DIMENSIONS` with the dimensions the metrics should be grouped by. Also found at the link above.
+- `INSIGHTS_KEY` and `INSIGHTS_ACCOUNT_ID` with your New Relic credentials. Documentation on how to generate/obtain these: https://docs.newrelic.com/docs/insights/insights-api/get-data/query-insights-event-data-api#register
 
 ## Usage
->[**Optional** - Include more thorough instructions on how to use the software. This section might not be needed if the Getting Started section is enough. Remove this section if it's not needed.]
+>
+This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
+
+- ga_realtime_nr - Code for the application's Lambda function.
+- events - Invocation events that you can use to invoke the function.
+- tests - Unit tests for the application code. 
+- template.yaml - A template that defines the application's AWS resources.
+
+The application uses several AWS resources, including Lambda functions and an Schedule Expression. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
+
+If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
+The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
+
+* [PyCharm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
+* [IntelliJ](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
+* [VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/welcome.html)
+* [Visual Studio](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/welcome.html)
 
 
 ## Building
 
->[**Optional** - Include this section if users will need to follow specific instructions to build the software from source. Be sure to include any third party build dependencies that need to be installed separately. Remove this section if it's not needed.]
+>
+Build your application with the `sam build --use-container` command.
+
+```bash
+newrelic-google-analytics-realtime-to-insights$ sam build --use-container
+```
+
+The SAM CLI installs dependencies defined in `ga_realtime_nr/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
+
+Test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Test events are included in the `events` folder in this project.
+
+Run functions locally and invoke them with the `sam local invoke` command.
+
+```bash
+newrelic-google-analytics-realtime-to-insights$ sam local invoke GaRealtimeNrFunction --event events/event.json
+```
 
 ## Testing
 
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
+>
+Tests are defined in the `tests` folder in this project. Use PIP to install the [pytest](https://docs.pytest.org/en/latest/) and run unit tests.
+
+```bash
+newrelic-google-analytics-realtime-to-insights$ pip install pytest pytest-mock --user
+newrelic-google-analytics-realtime-to-insights$ python -m pytest tests/ -v
+```
 
 ## Support
 
