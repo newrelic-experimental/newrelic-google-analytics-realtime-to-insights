@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     Google Analytics to New Relic POC
     """
 
-    with open('../ga_realtime_nr/credentials.json') as json_file:
+    with open('./credentials.json') as json_file:
         keyfile_dict = json.load(json_file)
 
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, scopes=['https://www.googleapis.com/auth/analytics.readonly'])
