@@ -1,6 +1,6 @@
 [![Experimental Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#experimental)
 
-# Google Analytics Realtime API to New Relic Insights [build badges go here when available]
+# Google Analytics Realtime API to New Relic Insights
 
 >
 This is a AWS Lambda serverless application that queries Google Analytics Realtime data and creates events in New Relic using the Insights insert api. It is built with the AWS Serverless Application Model (SAM). This is created as a proof of concept for sending GA realtime data to the New Relic Telemetry Data Platform (TDP).
